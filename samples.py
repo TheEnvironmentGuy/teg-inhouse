@@ -1,5 +1,20 @@
-#Blender export
+#Blender export scene or collection of individuals
 #Note that this file is temporary and will be reformated into another directory
+
+#Overview
+#Gather objects to export in Blender
+#Solve export paths using object names and project target
+#Generate file directory trees if necissary
+#commit too git for version control
+#Export unique meshes at center
+#export xml file containing locRotSca and instances for whole scene
+#include target specific data in xml if applicable
+#Identify objects that have been modifyed since last export
+#Call on external application to import scene or individual assets
+#perform mesh checks to ensure compatibility with target engine
+
+#For more help on xml
+#http://lxml.de/tutorial.html
 
 #Find and import the systems lxml module
 #Not all systems have same one so this acts as a failsafe
