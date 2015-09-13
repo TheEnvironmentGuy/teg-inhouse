@@ -21,6 +21,11 @@
 #Find and import the systems lxml module
 #Not all systems have same one so this acts as a failsafe
 
+# -*- coding: utf-8 -*-
+
+#Find and import the systems lxml module
+#Not all systems have same one so this acts as a failsafe
+
 try:
   from lxml import etree
   print("running with lxml.etree")
@@ -65,8 +70,9 @@ xmlData = ""
 xmlRoot = None
 scriptVer = "Devel 0.0.0"
 objectCount = 0
-
-
+blendPath = bpy.path.abspath('//')
+exportMesh = ".obj"
+objectUniqueList = {}
 
 
 def main():
@@ -81,8 +87,16 @@ def main():
         print_stamp(start=False)
         log(write=False)
     else:
-        #Sort object list
-        object_sort(objectList)
+        #Organise objectList by node type
+        objectDic = object_sort(objectList)
+        #print objectDic in a readable format
+        for key, value in objectDic.items():
+            print(key)
+            for item in value:
+                print("\t%s" %(item)) 
+        
+        #Create organized folders for all exports. 
+        project_make_folders()
         
         #Create a xml data set
         xml_new()
@@ -139,16 +153,19 @@ def object_list(listType="selection", multiScene=False, organizeType="outliner")
     #Creates an organized list of nodes
     if listType is "selection":
         print("Gathering objects by selection")
-        selection = bpy.context.selected_objects
+        objectList = bpy.context.selected_objects
         #Check that selection isnt Zero
-        if len(selection) <= 0:
+        if len(objectList) <= 0:
             print("No objects selected")
         else:
-            print("Found %s objects" %(len(selection)))
-            return(selection)
+            print("Found %s objects" %(len(objectList)))
+            return(objectList)
     
     elif listType is "scene":
+        bpy.ops.object.select_all(action='DESELECT')
         print("Gathering objects by scene")
+        objectList = bpy.context.scene
+        object_sort(objectList)
         if multiScene:
             print("Including objects in other scenes")
             #Get nodes from all scenes
@@ -159,16 +176,17 @@ def object_list(listType="selection", multiScene=False, organizeType="outliner")
             print("Found %s objects")
     
     elif listType is "children":
+        bpy.ops.object.select_all(action='DESELECT')
         print("Gathering objects by children")
         #Get children nodes
-        selection = bpy.context.selected_objects()
+        objectList = bpy.context.selected_objects()
         #Check that selection isnt Zero
-        if len(selection) <= 0:
+        if len(objectList) <= 0:
             print("error: no objects selected")
         else:
             #Get child nodes
             children = []
-            for node in selection:
+            for node in objectList:
                 children.append(1)
                 pass
             print("Found %s child objects" %(len(children)))
@@ -180,24 +198,69 @@ def object_list(listType="selection", multiScene=False, organizeType="outliner")
         return(False)
     
     
-def object_sort(sortType="outliner"):
-    if sortType is "outliner":
+def project_make_folders(projectStructure="outliner"):
+    if projectStructure is "outliner":
         print("Sorting objects by outliner")
-    elif sortType is "name":
+    elif projectStructure is "name":
         print("Sorting objects by name")
-    elif sortType is "projectMatch":
+    elif projectStructure is "projectMatch":
         print("Sorting objects by project matching")
     else:
         print("error: in '%s' wrong 'sortType'" %(sys._getframe().f_code.co_name))
         return(False)
 
-def project_make_dir():
+
+def object_sort(objectList):
+    #Group objectList items into dic according to type and return the dic  
+    #Make sure we have somthing in list
+    if len(objectList) >= 1:
+        objectDic = {}
+        for object in objectList:
+            object.select = True
+            #Add object type to dic if not present
+            objectType = object.type
+            if objectType not in objectDic:
+                objectDic[objectType] = []
+            #Add object to dic
+            objectDic[objectType].append(object)
+            object.select = False
+        return(objectDic)
+
+
+def object_check_diff():
+    #This is example code not viable
+    #check mesh if changed
+    for node in list:
+        vertexCount = len(node.vertices)
+        for vertex in node.vertices:
+            #do stuff
+            pass
+
+
+def object_clean(mesh):
+    bpy.ops.object.select_all(action='DESELECT')
+    mesh.select = true
+    bpy.ops.object.mode_set(mode = 'EDIT')
+    bpy.ops.mesh.remove_doubles()
+    bpy.ops.mesh.quads_convert_to_tris()
+    bpy.ops.mesh.tris_convert_to_quads
+    bpy.ops.object.mode_set(mode = 'OBJECT')
+    
+
+def project_make_dir(exportList):
     #Make nessisary directorys too export files.
     pass
 
 
+def object_get_dir():
+    pass
+
+
 def object_export():
-    print("Exporting meshes as '%s'" %("OBJ"))
+    #http://www.blender.org/api/blender_python_api_2_69_release/bpy.ops.export_scene.html#bpy.ops.export_scene.obj
+    print("Exporting meshes as '%s'" %(exportMesh))
+    #bpy.ops.export_scene.obj(filepath=str(path + ob.name + exportMesh), use_selection=True)
+    #node.select = False
 
 
 def xml_new():
