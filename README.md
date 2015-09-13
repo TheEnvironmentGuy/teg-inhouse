@@ -1,2 +1,2 @@
-# teg-pipeline
-The Environment Guy's inhouse pipline/workflow tools. 
+# teg-inhouse
+The Environment Guy's inhouse tools for graphics and game development. 
