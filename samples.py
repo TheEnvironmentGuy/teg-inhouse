@@ -21,7 +21,12 @@
 #Find and import the systems lxml module
 #Not all systems have same one so this acts as a failsafe
 
-# -*- coding: utf-8 -*-
+'''
+-*- coding: utf-8 -*-
+
+#Created Sep, 2015
+@author: Jeremy Bayley
+'''
 
 #Find and import the systems lxml module
 #Not all systems have same one so this acts as a failsafe
@@ -58,6 +63,7 @@ try:
     import sys
     import time
     import bpy
+    import math
 except ImportError:
     raise Exception("error importing modules")
 
@@ -66,7 +72,6 @@ projectRootDir = ""
 logData = None
 logDir = "b2g.log"
 xmlDir = "b2g.xml"
-xmlData = ""
 xmlRoot = None
 scriptVer = "Devel 0.0.0"
 objectCount = 0
@@ -98,13 +103,13 @@ def main():
         #Create organized folders for all exports. 
         project_make_folders()
         
-        #Create a xml data set
-        xml_new()
+        #Generate xml file
+        xmlTree= xml_make(objectDic)
         
         #add list objects to xml
         
         #Export xml
-        xml_write_file()
+        xml_write_file(xmlTree)
             
         #Export objects
         object_export()
@@ -263,9 +268,75 @@ def object_export():
     #node.select = False
 
 
-def xml_new():
+def xml_make(objectDic):
+    #Create xml data
     xmlRoot = etree.Element("xmlRoot")
-    print("Created new xml root")
+    xmlTree = etree.ElementTree(xmlRoot)
+
+    for key, values in objectDic.items():
+        #Create first level subElements (object categorys)
+        subElementOne = str(key)
+        subElementOne = etree.Element(subElementOne) 
+        xmlRoot.append(subElementOne)
+        if key == "MESH":
+            #Create second level subElements (individual objects)
+            for value in values:
+                subElementTwo = str(value)
+                subElementTwo = etree.Element(subElementTwo)
+                subElementOne.append(subElementTwo)
+                for attribute in object_attributes(objectType="MESH", object=value):
+                    #Add attributes to second level subElement
+                    subElementTwo.set(attribute, 'None')
+    return(xmlTree)
+
+
+def object_attributes(objectType, object):
+    bpy.ops.object.select_all(action='DESELECT')
+    object.select = True
+    attributeDic = {}
+    if objectType == "MESH":
+        #Create attributes for mesh
+        attributeList = {"name":bpy.context.selected_objects}
+        for attribute in attributeList:
+            newAttribute = {attribute:""}
+            attributeDic[attribute] = attributeList[attribute]
+            dic_add_locrotsca(dic=attributeDic, object=object)
+            print(attributeDic)
+            return(attributeList)
+    elif objectType == "CAMERA":
+        #Create attributes for camera
+        attributeList = {"name":bpy.context.selected_objects}
+        dic_add_locrotsca(dic=attributeDic, object=object)
+        print(attributeDic)
+        return(attributeList)
+
+        
+      
+      
+def dic_add_locrotsca(object, dic):
+    #Get Loc Rot Sca of object and return dic
+    #Converts blenders vector format to a regular Python list
+    locationVector = object.location
+    scaleVector = object.scale
+    dic["Scale"] = [0, 0, 0]
+    dic["Location"] = [0, 0, 0]
+    count=0
+    for value in locationVector:
+        dic["Location"][count] = round(value, 2) 
+        count+=1
+    count=0
+    for value in scaleVector:
+        dic["Scale"][count] = round(value, 2) 
+        count+=1
+    #Convert radians to degrees
+    radians = bpy.context.object.rotation_euler
+    dic["Rotation"] = [0, 0, 0]
+    count=0
+    for radian in radians:
+        #Converts radians into degrees
+        dic["Rotation"][count] = round(radian*(180/math.pi), 2)
+        count+=1
+    return(dic)
 
 
 def xml_add_element():
@@ -273,23 +344,14 @@ def xml_add_element():
     pass
 
 
-def xml_write_file():
+def xml_write_file(xmlTree):
     #Saves xml data about the exported objects
     print("Exporting xml too '%s'" %(xmlDir))
-    with open(xmlDir, 'w', encoding='utf-8') as xmlFile:
-        xmlFile = xmlData
+    xmlTree.write(xmlDir, encoding='utf-8')
+    #with open(xmlDir, 'w', encoding='utf-8') as xmlFile:
+    #    xmlFile = xmlData
 
     '''
-    #add child groups
-    root.append(etree.Element("child1"))
-    #A more efficient method
-    child2 = etree.SubElement(root, "child2")
-
-    #serialize the data
-    print(etree.tostring)
-
-
-
     #Elements are lists
     child = root[0]
     print(child.tag)
