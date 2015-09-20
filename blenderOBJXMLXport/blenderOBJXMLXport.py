@@ -94,7 +94,7 @@ def main():
     else:
         #Organise objectList by node type
         objectDic = object_sort(objectList)
-        #print objectDic in a readable format
+        #print objectDic in a readable formatt
         for key, value in objectDic.items():
             print(key)
             for item in value:
@@ -112,7 +112,7 @@ def main():
         xml_write_file(xmlTree)
             
         #Export objects
-        object_export()
+        object_export(objectDic)
         
         #Sucess, close any open files and end program
         print_stamp(start=False)
@@ -261,9 +261,17 @@ def object_get_dir():
     pass
 
 
-def object_export():
+def object_export(objectDic):
     #http://www.blender.org/api/blender_python_api_2_69_release/bpy.ops.export_scene.html#bpy.ops.export_scene.obj
     print("Exporting meshes as '%s'" %(exportMesh))
+    for key, values in objectDic.items():
+        if key == "MESH":
+            for item in values:
+               attributes = object_attributes(objectType="MESH", object=item)
+               bpy.ops.object.select_all(action='DESELECT')
+               item.select = True
+               bpy.ops.export_scene.obj(filepath=blendPath, check_existing=False, use_selection=True, use_animation=False, use_mesh_modifiers=True, use_smooth_groups=True, use_normals=True, use_uvs=True, use_materials=False, use_triangles=False, use_nurbs=False, use_vertex_groups=False, group_by_object=False, keep_vertex_order=False, global_scale=1.0)
+               
     #bpy.ops.export_scene.obj(filepath=str(path + ob.name + exportMesh), use_selection=True)
     #node.select = False
 
