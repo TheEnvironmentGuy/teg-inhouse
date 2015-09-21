@@ -43,13 +43,16 @@ try:
     import math
 except ImportError:
     raise Exception("error importing modules")
+    
+    
+__version__ = '0.1.0'
 
 
 projectRootDir = ""
 logData = None
 logDir = "b2g.log"
 xmlData = {}
-scriptVer = "Devel 0.1.0"
+scriptVer = __version__
 blendPath = bpy.path.abspath('//')
 
 
